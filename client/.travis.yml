@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+language: generic
+
+before_install:
+  - docker build -t jonassingbo/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true jonassingbo/react-test npm test
+
+after_success:
+  - docker build -t jonassingbo/multi-docker-complex-fib-client ./client
+  - docker build -t jonassingbo/multi-docker-complex-fib-server ./server
+  - docker build -t jonassingbo/multi-docker-complex-fib-nginx ./nginx
+  - docker build -t jonassingbo/multi-docker-complex-fib-worker ./worker
+  # Log into the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to docker hub
+  - docker push jonassingbo/multi-docker-complex-fib-client
+  - docker push jonassingbo/multi-docker-complex-fib-server
+  - docker push jonassingbo/multi-docker-complex-fib-nginx
+  - docker push jonassingbo/multi-docker-complex-fib-worker
